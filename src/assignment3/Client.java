@@ -4,8 +4,9 @@ import java.io.*;
 import java.net.*;
 
 /**
- * Client Class to send read or write requests to the host! 
- * @author Anthony Massaad (ID: 101150282) SYSC 3303 Assignment 2
+ * Client Class to send read or write requests to the host
+ * and continuously poll for a data from the host! 
+ * @author Anthony Massaad (ID: 101150282) SYSC 3303 Assignment 3
  *
  */
 public class Client {
@@ -32,7 +33,7 @@ public class Client {
 	}
 
 	/**
-	 * Close all open sockets
+	 * Close all open sockets and terminate program
 	 */
 	private void closeSockets() {
 		this.socket.close();
@@ -118,30 +119,32 @@ public class Client {
 	 * Method for receving responses
 	 */
 	private void receiveResponse() {
-		// Receive Continuous 
+		// Receive Continuous from the host until a valid
+		// receive message is given
 		while (true) {
 			byte data[] = new byte[4];
 			this.receivePacket = new DatagramPacket(data, data.length);
 			byte[] requestBytes = Helper.REQUESTING.getBytes();
 			
 			try {
+				// request for data
 				DatagramPacket requestPacket = new DatagramPacket(requestBytes, requestBytes.length, InetAddress.getLocalHost(), Helper.PORT_INTERM1);
 				this.socket.send(requestPacket);
-				// System.out.println("Sending " + new String(requestBytes, 0, requestBytes.length) +  " to port " + Helper.PORT_INTERM1);
 				this.socket.receive(this.receivePacket);
-				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				this.closeSockets();
 			}
-						
+			
+			// exit loop when data received is not nothing
 			if (!new String(this.receivePacket.getData(), 0, this.receivePacket.getLength()).equals(Helper.NOTHING)) {
 				break;
 			}
 			
+			// slow down the program
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(Helper.SLEEP);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

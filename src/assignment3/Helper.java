@@ -2,15 +2,18 @@ package assignment3;
 
 /**
  * Helper class to store global methods and constants
- * @author Anthony Massaad (ID: 101150282) SYSC 3303 Assignment 2
+ * @author Anthony Massaad (ID: 101150282) SYSC 3303 Assignment 3
  */
 public class Helper {
-	public final static int SLEEP = 3000;
+	// General constants used throughout the program
+	public final static int SLEEP = 1000;
 	public final static int SIZE = 31;
 	public final static int TIMEOUT = 15000;
-	public final static String REQUESTING = "req";
-	public final static byte[] ACKNOWLEDGE = "ack".getBytes();
-	public final static String NOTHING = "na";
+	
+	// messages that are passed
+	public final static String REQUESTING = "req"; // request
+	public final static byte[] ACKNOWLEDGE = "ack".getBytes(); // acknowledge in bytes
+	public final static String NOTHING = "na"; // nothing to send
 	
 	// PORTS
 	public final static int PORT_INTERM1 = 5000; // server -> client

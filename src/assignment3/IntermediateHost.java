@@ -1,15 +1,15 @@
 package assignment3;
 
 /**
- * Intermediate Host class for receiving and sending to Client
- * As well as sending and receiving for Server
- * @author Anthony Massaad (ID: 101150282) SYSC 3303 Assignment 2
+ * Intermediate Host is in charge of handling the sub tasks and handling the constant
+ * polls from the client and server.
+ * @author Anthony Massaad (ID: 101150282) SYSC 3303 Assignment 3
  */
 public class IntermediateHost{
+	
 	/**
 	 * Constuctor for Intermediate Host
-	 * Initializes the receive socket to point at port 23 where the Client will send
-	 * Initializes a send and receive socket for itself
+	 * 
 	 */
 	public IntermediateHost() {
 		Thread m1T = new Thread(new IntermediateTask(Helper.PORT_INTERM1));

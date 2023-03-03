@@ -4,7 +4,7 @@ import java.net.DatagramPacket;
 
 /**
  * Global logger class to print send and receive messages
- * @author Anthony Massaad (ID: 101150282) SYSC 3303 Assignment
+ * @author Anthony Massaad (ID: 101150282) SYSC 3303 Assignment 3
  */
 public class Log {
 

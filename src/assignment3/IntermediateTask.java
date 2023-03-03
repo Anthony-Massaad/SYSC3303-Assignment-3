@@ -7,12 +7,20 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
+/**
+ * In charge of storing and sending messages from client -> server and vice versa
+ * @author Anthony Massaad (ID: 101150282) SYSC 3303 Assignment 3
+ */
 public class IntermediateTask implements Runnable{
 	
 	private DatagramSocket socket; 
 	private DatagramPacket receivedPacket, storedPacket; 
 	private final int port; 
 	
+	/**
+	 * Constructor for the IntermediateTask
+	 * @param port Integer, the port number that the class is associated with
+	 */
 	public IntermediateTask(int port) {
 		this.port = port; 
 		try {
@@ -30,6 +38,10 @@ public class IntermediateTask implements Runnable{
 		System.exit(1);
 	}
 	
+	/**
+	 * Method for reusable sending packets
+	 * @param packet DatagramPacket, the packet to send
+	 */
 	private void sendPacket(DatagramPacket packet) {
 		try {
 			this.socket.send(packet);
@@ -40,11 +52,17 @@ public class IntermediateTask implements Runnable{
 		}
 	}
 	
+	/**
+	 * Overidden run method from Runnable
+	 * Handles receive and send messages to server and client
+	 */
 	@Override
 	public void run() {
 		while (true) {
 			byte data[] = new byte[Helper.SIZE];
 			this.receivedPacket = new DatagramPacket(data, data.length);
+			// receive data from either client or server
+			// data can be a request, or a message to store
 			try {
 				this.socket.receive(this.receivedPacket);
 			} catch (IOException e) {
@@ -52,9 +70,9 @@ public class IntermediateTask implements Runnable{
 				e.printStackTrace();
 				this.closeSockets(); 
 			}
-						
+			
 			if (new String(this.receivedPacket.getData(), 0, this.receivedPacket.getLength()).equals(Helper.REQUESTING)){
-				
+				// request message impl
 				// message to send or just acknowledge
 				if (this.storedPacket == null) {
 					// acknowledge that the request was sent but there is nothing stored currently 
@@ -70,7 +88,8 @@ public class IntermediateTask implements Runnable{
 					
 				}else {
 					// send and set to null
-					// if the stored packet was from the server, switch the port to point to the client. otherwise, switch the port to point to the server (was sent from the client) 
+					// if the stored packet was from the server, switch the port to point to the client. otherwise, 
+					// switch the port to point to the server (was sent from the client) 
                     System.out.println(Thread.currentThread().getName()+ " which is on port " + this.port + " request received from port " + this.receivedPacket.getPort() + ". Message to be sent");
 					this.storedPacket.setPort(this.storedPacket.getPort() == Helper.PORT_SERVER ? Helper.PORT_CLIENT : Helper.PORT_SERVER);
 					this.sendPacket(this.storedPacket);
@@ -78,6 +97,7 @@ public class IntermediateTask implements Runnable{
 				}
 				
 			} else {
+				// Storing Message passed impl
 				// acknowledge and store
                 System.out.println(Thread.currentThread().getName()+ " which is on port " + this.port + " message received from port " + this.receivedPacket.getPort() + ". Storing");
 				try {

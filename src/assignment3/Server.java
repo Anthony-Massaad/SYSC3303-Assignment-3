@@ -4,8 +4,9 @@ import java.io.*;
 import java.net.*;
 
 /**
- * Server class handling for receiving from the host and responding accordingly
- * @author Anthony Massaad (ID: 101150282) SYSC 3303 Assignment
+ * Server class continously request for data and responding accordingly
+ * Depending on the message passed from the client
+ * @author Anthony Massaad (ID: 101150282) SYSC 3303 Assignment 3
  */
 public class Server {
 
@@ -17,6 +18,7 @@ public class Server {
 	 */
 	public Server() {
 		try {
+			// initialize socket and port
 			this.socket = new DatagramSocket(Helper.PORT_SERVER);
 			this.socket.setSoTimeout(Helper.TIMEOUT);
 		} catch (SocketException e) {

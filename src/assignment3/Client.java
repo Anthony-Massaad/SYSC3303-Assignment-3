@@ -11,7 +11,7 @@ import java.net.*;
 public class Client {
 
 	private DatagramPacket sendPacket, receivePacket;
-	private DatagramSocket sendAndReceiveSocket;
+	private DatagramSocket socket;
 	
 	/**
 	 * Constructor for a Client
@@ -19,11 +19,11 @@ public class Client {
 	public Client() {
 		try {
 			// Construct a datagram socket and bind it to any available
-			this.sendAndReceiveSocket = new DatagramSocket();
+			this.socket = new DatagramSocket(Helper.PORT_CLIENT);
 			// Set timeout on the socket to ensure it dies if it doesn't receive anything
 			// in n milliseconds
-			this.sendAndReceiveSocket.setSoTimeout(Helper.TIMEOUT);
-			System.out.println("Client sendAndReceiveSocket Port: " + this.sendAndReceiveSocket.getLocalPort() + "\n");
+			this.socket.setSoTimeout(Helper.TIMEOUT);
+			System.out.println("Client sendAndReceiveSocket Port: " + this.socket.getLocalPort() + "\n");
 		} catch (SocketException se) { // Can't create the socket.
 			se.printStackTrace();
 			this.closeSockets();
@@ -35,7 +35,8 @@ public class Client {
 	 * Close all open sockets
 	 */
 	private void closeSockets() {
-		this.sendAndReceiveSocket.close();
+		this.socket.close();
+		System.exit(1);
 	}
 
 	/**
@@ -73,18 +74,16 @@ public class Client {
 		} catch (IOException e) {
 			e.printStackTrace();
 			this.closeSockets();
-			System.exit(1);
 		}
 
 		byte data[] = outputStream.toByteArray();
 
 		// Add the data produced in a send packet pointed to port 23
 		try {
-			this.sendPacket = new DatagramPacket(data, data.length, InetAddress.getLocalHost(), 23);
+			this.sendPacket = new DatagramPacket(data, data.length, InetAddress.getLocalHost(), Helper.PORT_INTERM2);
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 			this.closeSockets();
-			System.exit(1);
 		}
 
 		Log.logSendMsg("Client", this.sendPacket);
@@ -95,49 +94,62 @@ public class Client {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 			this.closeSockets();
-			System.exit(1);
 		}
 
 		// Send the datagram packet to the host via the sendAndReceiveSocket.
 		try {
-			this.sendAndReceiveSocket.send(sendPacket);
+			this.socket.send(sendPacket);
+			System.out.println("Packet sent.");
+			// receiving acknowledgement
+			System.out.print("\nReceiving Acknowledgement of message sent\n");
+			byte ackdata[] = new byte[Helper.SIZE];
+			this.receivePacket = new DatagramPacket(ackdata, ackdata.length);
+			this.socket.receive(this.receivePacket);
+			Log.logReceiveMsg("Client", this.receivePacket);
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 			this.closeSockets();
-			System.exit(1);
 		}
-		System.out.println("Packet sent.\n");
+		
 	}
 
 	/**
 	 * Method for receving responses
 	 */
 	private void receiveResponse() {
-		// Data received should be 4 bytes from the server //
-		byte data[] = new byte[4];
-		this.receivePacket = new DatagramPacket(data, data.length);
-		
-		
 		// Receive Continuous 
+		while (true) {
+			byte data[] = new byte[4];
+			this.receivePacket = new DatagramPacket(data, data.length);
+			byte[] requestBytes = Helper.REQUESTING.getBytes();
+			
+			try {
+				DatagramPacket requestPacket = new DatagramPacket(requestBytes, requestBytes.length, InetAddress.getLocalHost(), Helper.PORT_INTERM1);
+				this.socket.send(requestPacket);
+				// System.out.println("Sending " + new String(requestBytes, 0, requestBytes.length) +  " to port " + Helper.PORT_INTERM1);
+				this.socket.receive(this.receivePacket);
+				
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				this.closeSockets();
+			}
+						
+			if (!new String(this.receivePacket.getData(), 0, this.receivePacket.getLength()).equals(Helper.NOTHING)) {
+				break;
+			}
+			
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				this.closeSockets();
+			}
+			
+		}
 		
-		
-		
-		
-		
-		//
-
-		// Block until a datagram packet is received from receiveSocket.
-//		try {
-//			System.out.println("Client: Waiting for response..."); // so we know we're waiting
-//			this.sendAndReceiveSocket.receive(this.receivePacket);
-//		} catch (IOException e) {
-//			System.out.print("IO Exception: likely:");
-//			System.out.println("Receive Socket Timed Out.\n" + e);
-//			e.printStackTrace();
-//			this.closeSockets();
-//			System.exit(1);
-//		}
-
 		Log.logReceiveMsg("Client", this.receivePacket);
 	}
 

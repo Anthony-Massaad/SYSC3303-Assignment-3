@@ -10,19 +10,28 @@ import java.net.*;
 public class Server {
 
 	private DatagramPacket sendPacket, receivePacket;
+	private DatagramSocket socket; 
 	
 	/**
 	 * Constructor for the server
 	 */
 	public Server() {
-
+		try {
+			this.socket = new DatagramSocket(Helper.PORT_SERVER);
+			this.socket.setSoTimeout(Helper.TIMEOUT);
+		} catch (SocketException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println("Server Started");
 	}
 
 	/**
 	 * Close all open sockets
 	 */
 	private void closeSockets() {
-
+		this.socket.close();
+		System.exit(1);
 	}
 
 	/**
@@ -101,30 +110,38 @@ public class Server {
 
 	/**
 	 * Method for receiving and sending back
+	 * @throws InterruptedException 
 	 */
 	private void receiveAndEcho() {
-		byte data[] = new byte[Helper.SIZE];
-		this.receivePacket = new DatagramPacket(data, data.length);
-		
-		// Receive data 
-		// Continueous
-		
-		
-		
-		
-		
-		// 
-		
-		// Block until a datagram packet is received from receiveSocket.
-//		try {
-//			System.out.println("Server: Waiting For Packet...\n"); // so we know we're waiting
-//			this.receiveSocket.receive(this.receivePacket);
-//		} catch (IOException e) {
-//			System.out.print("IO Exception: likely:");
-//			System.out.println("Receive Socket Timed Out.\n" + e);
-//			e.printStackTrace();
-//			System.exit(1);
-//		}
+		// Receive Continuous 
+		while (true) {
+			byte data[] = new byte[Helper.SIZE];
+			this.receivePacket = new DatagramPacket(data, data.length);
+			byte[] requestBytes = Helper.REQUESTING.getBytes();
+			
+			try {
+				DatagramPacket requestPacket = new DatagramPacket(requestBytes, requestBytes.length, InetAddress.getLocalHost(), Helper.PORT_INTERM2);
+				// System.out.println("Sending " + new String(requestBytes, 0, requestBytes.length) + " to port " + Helper.PORT_INTERM2);
+				this.socket.send(requestPacket);
+				this.socket.receive(this.receivePacket);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				this.closeSockets();
+			}
+			
+			if (!new String(this.receivePacket.getData(), 0, this.receivePacket.getLength()).equals(Helper.NOTHING)) {
+				break;
+			}
+			
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				this.closeSockets();
+			}
+		}
 
 		Log.logReceiveMsg("Server", this.receivePacket);
 
@@ -134,7 +151,7 @@ public class Server {
 			isReadRequest = this.parseData(this.receivePacket.getData());
 		} catch (Exception e2) {
 			e2.printStackTrace();
-			System.exit(1);
+			this.closeSockets();
 		}
 		
 		// Send data back according if it is read or write request.
@@ -146,18 +163,8 @@ public class Server {
 			sendData = new byte[] {(byte) 0, (byte) 4, (byte) 0, (byte) 0};
 		}
 
-		// SEND PACKET OF NEW DATA BACK TO HOST
-		// Create a temporary send socket that will close right after
-		DatagramSocket sendSocket = null;
-		try {
-			sendSocket = new DatagramSocket();
-		} catch (SocketException e1) {
-			e1.printStackTrace();
-			this.closeSockets();
-			System.exit(1);
-		}
 		// Create send packet 
-		this.sendPacket = new DatagramPacket(sendData, sendData.length, this.receivePacket.getAddress(), 50);
+		this.sendPacket = new DatagramPacket(sendData, sendData.length, this.receivePacket.getAddress(), Helper.PORT_INTERM1);
 
 		Log.logSendMsg("Server", this.sendPacket);
 
@@ -167,21 +174,25 @@ public class Server {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 			this.closeSockets();
-			System.exit(1);
+			
 		}
 
 		// Send the packet to the designated port via the send socket
 		try {
-			sendSocket.send(this.sendPacket);
+			// sending packet of message
+			this.socket.send(this.sendPacket);
+			System.out.println("Packet Sent");
+			// receiving acknowledgement
+			System.out.print("\nReceiving Acknowledgement of message sent\n");
+			byte data[] = new byte[Helper.SIZE];
+			this.receivePacket = new DatagramPacket(data, data.length);
+			this.socket.receive(this.receivePacket);
+			Log.logReceiveMsg("Server", this.receivePacket);
 		} catch (IOException e) {
 			e.printStackTrace();
 			this.closeSockets();
-			System.exit(1);
+			
 		}
-		
-		// Close the socket
-		System.out.println("packet sent \n");
-		sendSocket.close();
 
 	}
 

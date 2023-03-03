@@ -7,7 +7,16 @@ package assignment3;
 public class Helper {
 	public final static int SLEEP = 3000;
 	public final static int SIZE = 31;
-	public final static int TIMEOUT = 30000;
+	public final static int TIMEOUT = 15000;
+	public final static String REQUESTING = "req";
+	public final static byte[] ACKNOWLEDGE = "ack".getBytes();
+	public final static String NOTHING = "na";
+	
+	// PORTS
+	public final static int PORT_INTERM1 = 5000; // server -> client
+	public final static int PORT_INTERM2 = 3500; // client -> server
+	public final static int PORT_SERVER = 2500;
+	public final static int PORT_CLIENT = 1500;
 
 	/**
 	 * Print the data of bytes as hex format

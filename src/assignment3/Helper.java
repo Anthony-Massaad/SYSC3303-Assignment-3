@@ -8,7 +8,7 @@ public class Helper {
 	// General constants used throughout the program
 	public final static int SLEEP = 1000;
 	public final static int SIZE = 31;
-	public final static int TIMEOUT = 15000;
+	public final static int TIMEOUT = 30000;
 	
 	// messages that are passed
 	public final static String REQUESTING = "req"; // request

@@ -1,39 +1,19 @@
 package assignment3;
 
 import java.io.*;
-import java.net.*;
 
 /**
  * Server class continously request for data and responding accordingly
  * Depending on the message passed from the client
  * @author Anthony Massaad (ID: 101150282) SYSC 3303 Assignment 3
  */
-public class Server {
-
-	private DatagramPacket sendPacket, receivePacket;
-	private DatagramSocket socket; 
+public class Server extends CommonRPCImpl{
 	
 	/**
 	 * Constructor for the server
 	 */
-	public Server() {
-		try {
-			// initialize socket and port
-			this.socket = new DatagramSocket(Helper.PORT_SERVER);
-			this.socket.setSoTimeout(Helper.TIMEOUT);
-		} catch (SocketException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		System.out.println("Server Started");
-	}
-
-	/**
-	 * Close all open sockets
-	 */
-	private void closeSockets() {
-		this.socket.close();
-		System.exit(1);
+	public Server(int port, String systemName) {
+		super(systemName, port);
 	}
 
 	/**
@@ -109,44 +89,25 @@ public class Server {
 
 		return isReadRequest;
 	}
+	
+	/**
+	 * receive data from the Intermediate Host
+	 */
+	private void receiveData() {
+		// Receive Continuous 
+		try {
+			this.receive(Helper.SIZE, Helper.PORT_INTERM2);
+		} catch (IOException | InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+			this.closeSockets();
+		}
+	}
 
 	/**
 	 * Method for receiving and sending back
-	 * @throws InterruptedException 
 	 */
-	private void receiveAndEcho() {
-		// Receive Continuous 
-		while (true) {
-			byte data[] = new byte[Helper.SIZE];
-			this.receivePacket = new DatagramPacket(data, data.length);
-			byte[] requestBytes = Helper.REQUESTING.getBytes();
-			
-			try {
-				DatagramPacket requestPacket = new DatagramPacket(requestBytes, requestBytes.length, InetAddress.getLocalHost(), Helper.PORT_INTERM2);
-				// System.out.println("Sending " + new String(requestBytes, 0, requestBytes.length) + " to port " + Helper.PORT_INTERM2);
-				this.socket.send(requestPacket);
-				this.socket.receive(this.receivePacket);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				this.closeSockets();
-			}
-			
-			if (!new String(this.receivePacket.getData(), 0, this.receivePacket.getLength()).equals(Helper.NOTHING)) {
-				break;
-			}
-			
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				this.closeSockets();
-			}
-		}
-
-		Log.logReceiveMsg("Server", this.receivePacket);
-
+	private void parseAndSendData() {
 		// PARSE DATA
 		boolean isReadRequest = false;
 		try {
@@ -164,36 +125,14 @@ public class Server {
 		} else {
 			sendData = new byte[] {(byte) 0, (byte) 4, (byte) 0, (byte) 0};
 		}
-
-		// Create send packet 
-		this.sendPacket = new DatagramPacket(sendData, sendData.length, this.receivePacket.getAddress(), Helper.PORT_INTERM1);
-
-		Log.logSendMsg("Server", this.sendPacket);
-
-		// Slow things down
+		
+		// send message and receive acknowledgement
 		try {
-			Thread.sleep(Helper.SLEEP);
-		} catch (InterruptedException e) {
+			this.send(sendData, Helper.PORT_INTERM1);
+		} catch (IOException | InterruptedException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 			this.closeSockets();
-			
-		}
-
-		// Send the packet to the designated port via the send socket
-		try {
-			// sending packet of message
-			this.socket.send(this.sendPacket);
-			System.out.println("Packet Sent");
-			// receiving acknowledgement
-			System.out.print("\nReceiving Acknowledgement of message sent\n");
-			byte data[] = new byte[Helper.SIZE];
-			this.receivePacket = new DatagramPacket(data, data.length);
-			this.socket.receive(this.receivePacket);
-			Log.logReceiveMsg("Server", this.receivePacket);
-		} catch (IOException e) {
-			e.printStackTrace();
-			this.closeSockets();
-			
 		}
 
 	}
@@ -204,7 +143,8 @@ public class Server {
 	public void receiveAndSend() {
 		while (true) {
 			System.out.println("------------------------");
-			this.receiveAndEcho();
+			this.receiveData();
+			this.parseAndSendData();
 		}
 	}
 
@@ -213,7 +153,7 @@ public class Server {
 	 * @param args String[], adds arguments if needed 
 	 */
 	public static void main(String args[]) {
-		Server c = new Server();
+		Server c = new Server(Helper.PORT_SERVER, "Server");
 		c.receiveAndSend();
 	}
 

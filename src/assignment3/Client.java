@@ -1,7 +1,6 @@
 package assignment3;
 
 import java.io.*;
-import java.net.*;
 
 /**
  * Client Class to send read or write requests to the host
@@ -9,35 +8,13 @@ import java.net.*;
  * @author Anthony Massaad (ID: 101150282) SYSC 3303 Assignment 3
  *
  */
-public class Client {
+public class Client extends CommonRPCImpl{
 
-	private DatagramPacket sendPacket, receivePacket;
-	private DatagramSocket socket;
-	
 	/**
 	 * Constructor for a Client
 	 */
-	public Client() {
-		try {
-			// Construct a datagram socket and bind it to any available
-			this.socket = new DatagramSocket(Helper.PORT_CLIENT);
-			// Set timeout on the socket to ensure it dies if it doesn't receive anything
-			// in n milliseconds
-			this.socket.setSoTimeout(Helper.TIMEOUT);
-			System.out.println("Client sendAndReceiveSocket Port: " + this.socket.getLocalPort() + "\n");
-		} catch (SocketException se) { // Can't create the socket.
-			se.printStackTrace();
-			this.closeSockets();
-			System.exit(1);
-		}
-	}
-
-	/**
-	 * Close all open sockets and terminate program
-	 */
-	private void closeSockets() {
-		this.socket.close();
-		System.exit(1);
+	public Client(int port, String systemName) {
+		super(systemName, port);
 	}
 
 	/**
@@ -78,37 +55,11 @@ public class Client {
 		}
 
 		byte data[] = outputStream.toByteArray();
-
-		// Add the data produced in a send packet pointed to port 23
+		
 		try {
-			this.sendPacket = new DatagramPacket(data, data.length, InetAddress.getLocalHost(), Helper.PORT_INTERM2);
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-			this.closeSockets();
-		}
-
-		Log.logSendMsg("Client", this.sendPacket);
-
-		// Slow things down
-		try {
-			Thread.sleep(Helper.SLEEP);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-			this.closeSockets();
-		}
-
-		// Send the datagram packet to the host via the sendAndReceiveSocket.
-		try {
-			this.socket.send(sendPacket);
-			System.out.println("Packet sent.");
-			// receiving acknowledgement
-			System.out.print("\nReceiving Acknowledgement of message sent\n");
-			byte ackdata[] = new byte[Helper.SIZE];
-			this.receivePacket = new DatagramPacket(ackdata, ackdata.length);
-			this.socket.receive(this.receivePacket);
-			Log.logReceiveMsg("Client", this.receivePacket);
-			
-		} catch (IOException e) {
+			this.send(data, Helper.PORT_INTERM2);
+		} catch (IOException | InterruptedException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 			this.closeSockets();
 		}
@@ -121,39 +72,14 @@ public class Client {
 	private void receiveResponse() {
 		// Receive Continuous from the host until a valid
 		// receive message is given
-		while (true) {
-			byte data[] = new byte[4];
-			this.receivePacket = new DatagramPacket(data, data.length);
-			byte[] requestBytes = Helper.REQUESTING.getBytes();
-			
-			try {
-				// request for data
-				DatagramPacket requestPacket = new DatagramPacket(requestBytes, requestBytes.length, InetAddress.getLocalHost(), Helper.PORT_INTERM1);
-				this.socket.send(requestPacket);
-				this.socket.receive(this.receivePacket);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				this.closeSockets();
-			}
-			
-			// exit loop when data received is not nothing
-			if (!new String(this.receivePacket.getData(), 0, this.receivePacket.getLength()).equals(Helper.NOTHING)) {
-				break;
-			}
-			
-			// slow down the program
-			try {
-				Thread.sleep(Helper.SLEEP);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				this.closeSockets();
-			}
-			
+		try {
+			this.receive(4, Helper.PORT_INTERM1);
+		} catch (IOException | InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			this.closeSockets();
 		}
 		
-		Log.logReceiveMsg("Client", this.receivePacket);
 	}
 
 	/**
@@ -183,7 +109,7 @@ public class Client {
 	 * @param args String[], takes arguements if needed
 	 */
 	public static void main(String args[]) {
-		Client c = new Client();
+		Client c = new Client(Helper.PORT_CLIENT, "Client");
 		c.sendAndReceive();
 	}
 

@@ -9,7 +9,11 @@ public class IntermediateHost{
 	
 	/**
 	 * Constuctor for Intermediate Host
-	 * 
+	 * Creates 2 threads to send and receive messages between 
+	 * <ul>
+	 * <li>Server -> Client</li>
+	 * <li>Client -> Server</li>
+	 * </ul>
 	 */
 	public IntermediateHost() {
 		Thread m1T = new Thread(new IntermediateTask(Helper.PORT_INTERM1));

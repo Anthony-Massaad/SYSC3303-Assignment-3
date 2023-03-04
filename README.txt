@@ -44,9 +44,9 @@ respective packet that is being sent or is being received.
 
 Question 1: Why did I suggest that you use more than one thread for the implementation of the Intermediate task?
 
-It was suggested to use more than one thread for the implementation of the Intermediate task because it allows for separation between the two communication channel of the 
+It was suggested to use more than one thread for the implementation of the Intermediate task because, it allows for separation between the two communication channel of the 
 Client and Server. By creating two threads, we now have a channel for Client -> Server and a channel for Server -> Client. This decouples the program, and separates the channels to two 
-different instances, which creates cleaner and a more scalable application. 
+different instances, which creates cleaner and a more scalable application. At the same time, it allows for synchronization between multiple threads.
 
 Question 2: Is it necessary to use synchronized in the intermediate task? Explain.
 

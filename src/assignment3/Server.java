@@ -51,7 +51,6 @@ public class Server extends CommonRPCImpl{
 		
 		// ensure that the first byte is 0, otherwise throws an error
 		if (data[0] != (byte) 0) {
-			this.closeSockets();
 			throw new Exception("first byte not 0");
 		}
 		
@@ -63,7 +62,6 @@ public class Server extends CommonRPCImpl{
 		} else if (data[1] == (byte) 2) {
 			isReadRequest = false;
 		} else {
-			this.closeSockets();
 			throw new Exception("second byte is not 1 or 2 meaning invalid");
 		}
 		
@@ -73,7 +71,6 @@ public class Server extends CommonRPCImpl{
 
 		// Determines if the byte after the end of string is 0, otherwise throws error
 		if (data[position] != (byte) 0) {
-			this.closeSockets();
 			throw new Exception("byte after first String is not 0");
 		}
 
@@ -83,7 +80,6 @@ public class Server extends CommonRPCImpl{
 		
 		// Determines if the byte after the end of string is 0, otherwise throws error
 		if (data[position] != (byte) 0) {
-			this.closeSockets();
 			throw new Exception("byte after second String is not 0");
 		}
 
